@@ -6,13 +6,13 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.rmi.UnknownHostException;
 
-public class Client extends Thread{
+public class Tenant extends Thread{
     Socket requestSocket;
     ObjectInputStream in=null;
     ObjectOutputStream out=null;
 
     int a, b;
-    Client(int a, int b) {
+    Tenant(int a, int b) {
         this.a = a;
         this.b = b;
     }
