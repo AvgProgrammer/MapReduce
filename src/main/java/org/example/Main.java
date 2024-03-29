@@ -93,6 +93,7 @@ public class Main {
             System.out.println("Do you want to enter another filter:\n1)Yes\n2)No");
             answer2= sc.nextInt();
         }while (answer2==1);
+        Filter filter=new Filter(area,time,numb,price,stars);
         sc.close();
 
     }

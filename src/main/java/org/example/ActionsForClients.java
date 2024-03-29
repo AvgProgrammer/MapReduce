@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class ActionsForClients extends Thread{
     ObjectInputStream in;
     ObjectOutputStream out;
+    private ArrayList<Room> rooms;
 
     public ActionsForClients(Socket connection) {
         try {
@@ -20,14 +22,20 @@ public class ActionsForClients extends Thread{
     }
     public void run() {
         try {
-            int a=this.in.readInt();
-            int b=this.in.readInt();
+            Object receivedObject = in.readObject();
+            if (receivedObject instanceof Room) {
+                Room room = (Room) receivedObject;
+                rooms.add(room);
+            }
+            else if (receivedObject instanceof Filter) {
+                Filter filter = (Filter) receivedObject;
 
-            this.out.writeInt(a+b);
-            this.out.flush();
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         } finally {
             try {
                 in.close();

@@ -1,10 +1,11 @@
 package org.example;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
-public class Room {
+public class Room implements Serializable {
     private String roomName;
     private String area;
     private int noOfReviews;
