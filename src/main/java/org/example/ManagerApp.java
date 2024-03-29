@@ -3,7 +3,7 @@ package org.example;
 
 import java.util.Scanner;
 
-public class Main {
+public class ManagerApp {
     public static void main(String[] args) {
         Scanner sc=new Scanner(System.in);
         System.out.println("Hey Please choose a role:\n1)Landlord\n2)Customer");
