@@ -6,12 +6,12 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 
-public class ActionsForClients extends Thread{
+public class Worker extends Thread{
     ObjectInputStream in;
     ObjectOutputStream out;
     private ArrayList<Room> rooms;
 
-    public ActionsForClients(Socket connection) {
+    public Worker(Socket connection) {
         try {
             this.in=new ObjectInputStream(connection.getInputStream());
             this.out=new ObjectOutputStream(connection.getOutputStream());
