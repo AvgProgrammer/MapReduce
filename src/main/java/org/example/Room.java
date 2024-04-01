@@ -21,6 +21,7 @@ public class Room implements Serializable {
         this.noOfPersons=numbPerson;
         this.stars=stars;
         this.roomImage=img;
+        this.Booked=new ArrayList<>();
     }
     public boolean isBooked(LocalDate startDate, LocalDate endDate){
         String[] parts;
@@ -47,4 +48,27 @@ public class Room implements Serializable {
         Booked.add(startString+"-"+endString);
     }
 
+    public String getRoomName() {
+        return roomName;
+    }
+
+    public String getArea() {
+        return area;
+    }
+
+    public int getNoOfReviews() {
+        return noOfReviews;
+    }
+
+    public int getNoOfPersons() {
+        return noOfPersons;
+    }
+
+    public double getStars() {
+        return stars;
+    }
+
+    public String getRoomImage() {
+        return roomImage;
+    }
 }
