@@ -1,36 +1,61 @@
 package org.example;
 
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.rmi.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Scanner;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 public class ManagerApp extends Thread{
     public static void main(String[] args) {
-
+        ArrayList<Room> rooms=new ArrayList<>();
         int number;
         do {
             Scanner sc=new Scanner(System.in);
             System.out.println("Please choose one of the following\n1)Add file\n2)Exit");
             number = sc.nextInt();
             if (number == 1) {
-                System.out.println("Enter file path:");
-                String path = sc.nextLine();
-                    /*Gson gson = new Gson();
-                    try (Reader reader = new FileReader("data.json")) {
-                        Room room = gson.fromJson(reader, Room.class);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }*/
+                JSONParser parser = new JSONParser();
+
+                try {
+                    Object obj = parser.parse(new FileReader("C:\\Users\\user\\IdeaProjects\\Kata2024\\src\\main\\java\\org\\example\\room_details_expanded.json"));
+                    JSONObject jsonObject = (JSONObject) obj;
+
+                    JSONArray roomList = (JSONArray) jsonObject.get("rooms");
+                    Iterator<JSONObject> iterator = roomList.iterator();
+                    while (iterator.hasNext()) {
+                        JSONObject roomJson = iterator.next();
+                        Room room = new Room(
+                                (String) roomJson.get("roomName"),
+                                ((Long) roomJson.get("noOfPersons")).intValue(),
+                                (String) roomJson.get("area"),
+                                ((Long) roomJson.get("stars")).doubleValue(),
+                                ((Long) roomJson.get("noOfReviews")).intValue(),
+                                (String) roomJson.get("roomImage")
+                        );
+                        rooms.add(room);
+                        System.out.println(room.getRoomName());
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         } while (number != 2);
+        for(Room room:rooms){
+            new ManagerApp(room).start();
+        }
 
     }
     Socket requestSocket;
-    ObjectInputStream in=null;
     ObjectOutputStream out=null;
     private Room room;
 
@@ -41,10 +66,9 @@ public class ManagerApp extends Thread{
 
         try {
 
-            requestSocket=new Socket("127.0.0.1",1234);
+            requestSocket=new Socket("localhost",1234);
 
             this.out=new ObjectOutputStream(requestSocket.getOutputStream());
-            this.in=new ObjectInputStream(requestSocket.getInputStream());
 
             this.out.writeObject(room);
             this.out.flush();
@@ -55,7 +79,7 @@ public class ManagerApp extends Thread{
             ioException.printStackTrace();
         } finally {
             try {
-                in.close();	out.close();
+                out.close();
                 requestSocket.close();
             } catch (IOException ioException) {
                 ioException.printStackTrace();

@@ -1,11 +1,11 @@
 package org.example;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.rmi.UnknownHostException;
-import java.util.Scanner;
+import java.time.*;
+import java.util.*;
+import java.time.format.DateTimeFormatter;
 
 public class Tenant extends Thread{
 
@@ -13,7 +13,7 @@ public class Tenant extends Thread{
         System.out.println("Hello Customer");
         int answer=0;
         String area="";
-        String time="";
+        String time="01/01/2024-05/01/2024";
         int numb=0;
         double price=0.0;
         double stars=0.0;
@@ -35,8 +35,9 @@ public class Tenant extends Thread{
                         area=sc.nextLine();
                         break;
                     case 2:
-                        System.out.println("Enter Time Period(DD-MM-YYYY-DD-MM-YYY)");
+                        System.out.println("Enter Time Period(DD/MM/YYYY-DD/MM/YYY)");
                         time=sc.nextLine();
+                        sc.nextLine();
                         break;
                     case 3:
                         do{
@@ -66,39 +67,89 @@ public class Tenant extends Thread{
             answer2= sc.nextInt();
         }while (answer2==1);
         Filter filter=new Filter(area,time,numb,price,stars);
-        sc.close();
+        new Tenant(filter, sc).start();
     }
     Socket requestSocket;
     ObjectInputStream in=null;
     ObjectOutputStream out=null;
     private Filter filter;
+    private Scanner scanner;
 
-    Tenant(Filter filter) {
+    public Tenant(Filter filter,Scanner scanner) {
         this.filter=filter;
+        this.scanner = scanner;
+    }
+
+    public void book(Room room, LocalDate startDate, LocalDate endDate) {
+        synchronized (room) {
+            if (!room.isBooked(startDate, endDate)) {
+                room.AddDate(startDate, endDate);
+                System.out.println("Room " + room.getRoomName() + " successfully booked from " + startDate + " to " + endDate);
+            } else {
+                System.out.println("Room " + room.getRoomName() + " is not available for the selected dates.");
+            }
+        }
     }
 
     public void run() {
 
         try {
 
-            /* Create socket for contacting the server on port 4321*/
-            requestSocket=new Socket("127.0.0.1",1234);
-            /* Create the streams to send and receive data from server */
+            requestSocket=new Socket("localhost",1234);
+
             this.out=new ObjectOutputStream(requestSocket.getOutputStream());
-            this.in=new ObjectInputStream(requestSocket.getInputStream());
-            /* Write the two integers */
 
             this.out.writeObject(filter);
             this.out.flush();
 
+            this.in = new ObjectInputStream(requestSocket.getInputStream());
+
+            Object response = in.readObject();
+            if (response instanceof ArrayList<?>) {
+                ArrayList<Room> receivedRooms = (ArrayList<Room>) response;
+                // Rest of the logic to handle received rooms, including booking
+                if(receivedRooms.isEmpty()) {
+                    System.out.println("No rooms found.");
+                    return;
+                } else {
+                    for (int i = 0; i < receivedRooms.size(); i++) {
+                        System.out.println((i + 1) + ") " + receivedRooms.get(i).getRoomName());
+                    }
+                }
+                System.out.println("Enter the number of the room you wish to choose:");
+                int choice=scanner.nextInt();
+
+                if(choice < 1 || choice > receivedRooms.size()) {
+                    System.out.println("Invalid choice. Exiting.");
+                    return;
+                }
+
+                Room selectedRoom = receivedRooms.get(choice - 1);
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy").withLocale(Locale.US);
+
+                // Split the input string into start and end date strings
+                String[] parts =  this.filter.getTime().split("-");
+                if (parts.length != 2) {
+                    throw new IllegalArgumentException("Invalid date range format. Expected format: dd/MM/yyyy-dd/MM/yyyy");
+                }
+
+                LocalDate startDate = LocalDate.parse(parts[0], formatter);
+                LocalDate endDate = LocalDate.parse(parts[1], formatter);
+                book(selectedRoom,startDate,endDate);
+                System.out.println("You selected: " + selectedRoom.getRoomName());
+
+                scanner.close();
+            }
 
         } catch (UnknownHostException unknownHost) {
             System.err.println("You are trying to connect to an unknown host!");
         } catch (IOException ioException) {
             ioException.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         } finally {
             try {
-                in.close();	out.close();
+                out.close();
                 requestSocket.close();
             } catch (IOException ioException) {
                 ioException.printStackTrace();
