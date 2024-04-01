@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +36,20 @@ public class Worker{
             }
         }
     }
+    public ArrayList<Room> getRooms(){
+        return Rooms;
+    }
+    public void setBooked(String room, String startDate, String endDate){
+        for(Room room1:Rooms){
+            if(room1.getRoomName().equals(room)){
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                LocalDate date1 = LocalDate.parse(startDate, formatter);
+                LocalDate date2 = LocalDate.parse(endDate, formatter);
+                room1.AddDate(date1,date2);
+            }
+        }
 
+    }
     private class WorkerThread extends Thread {
         private Socket connection;
         ObjectInputStream in;

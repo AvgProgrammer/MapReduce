@@ -105,6 +105,10 @@ public class Master {
                     tenantOut.flush();
                 }
 
+            }else if(receivedObject.toString().startsWith("BookedRoom:")){
+                String[] parts = receivedObject.toString().split(":");
+                forwardBookingToManagerApp(parts[1], parts[2], parts[3]);
+
             }
         }catch (IOException e) {
             System.err.println("Failed to change workers: " + e.getMessage());
@@ -112,6 +116,12 @@ public class Master {
     }
     private void Map(int MapId,Filter filter,Socket socket){
             Workers.get(MapId).addTask(filter,socket);
+    }
+
+    private void forwardBookingToManagerApp(String roomName, String startDate, String endDate) {
+        for(Worker worker:Workers){
+            worker.setBooked( roomName, startDate, endDate);
+        }
     }
 
     public void startResultListener() {

@@ -139,6 +139,9 @@ public class Tenant extends Thread{
                 System.out.println("You selected: " + selectedRoom.getRoomName());
 
                 scanner.close();
+
+                out.writeObject("BookedRoom:" + selectedRoom.getRoomName() + ":" + startDate + ":" + endDate);
+                out.flush();
             }
 
         } catch (UnknownHostException unknownHost) {

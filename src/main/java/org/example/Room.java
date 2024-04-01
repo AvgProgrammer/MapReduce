@@ -41,13 +41,16 @@ public class Room implements Serializable {
         }
         return false;
     }
+
     public void AddDate(LocalDate startdate,LocalDate enddate){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         String startString = startdate.format(formatter);
         String endString = enddate.format(formatter);
         Booked.add(startString+"-"+endString);
     }
-
+    public ArrayList<String> getBooked(){
+        return this.Booked;
+    }
     public String getRoomName() {
         return roomName;
     }
