@@ -94,6 +94,7 @@ public class Tenant extends Thread{
     public void run() {
 
         try {
+            //DESKTOP-DTLJ7MI
             requestSocket=new Socket("localhost",1234);
 
             this.out=new ObjectOutputStream(requestSocket.getOutputStream());

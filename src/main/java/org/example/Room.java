@@ -41,6 +41,25 @@ public class Room implements Serializable {
         }
         return false;
     }
+    public int isBookedInPeriod(LocalDate startDate, LocalDate endDate){
+        String[] parts;
+        int count=0;
+        for(String key: Booked){
+            parts = key.split("-");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            try {
+                LocalDate StartDate1 = LocalDate.parse(parts[0], formatter);
+                LocalDate EndDate1 = LocalDate.parse(parts[1], formatter);
+                if(startDate.isBefore(StartDate1) || endDate.isAfter(EndDate1)){
+                    count++;
+                }
+
+            }catch(java.time.format.DateTimeParseException e) {
+                System.out.println("Invalid date format. Please enter the date in the format DD-MM-YYYY.");
+            }
+        }
+        return  count;
+    }
 
     public void AddDate(LocalDate startdate,LocalDate enddate){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");

@@ -1,10 +1,7 @@
 package org.example;
 
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.rmi.UnknownHostException;
 import java.time.LocalDate;
@@ -17,7 +14,7 @@ import org.json.simple.parser.JSONParser;
 
 public class ManagerApp extends Thread{
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
 
         ArrayList<Room> rooms = new ArrayList<>();
         HashMap<String,ArrayList<Room>> Reservations=new HashMap<>();
@@ -31,7 +28,7 @@ public class ManagerApp extends Thread{
                 JSONParser parser = new JSONParser();
 
                 try {
-                    Object obj = parser.parse(new FileReader("/Users/olgatympakianaki/Library/CloudStorage/OneDrive-aueb.gr/University/6th Semester/Distributed systems/Project/src/main/java/org/example/room_details_expanded.json"));
+                    Object obj = parser.parse(new FileReader("C:\\Users\\user\\IdeaProjects\\Kata2024\\src\\main\\java\\org\\example\\room_details_expanded.json"));
                     JSONObject jsonObject = (JSONObject) obj;
 
                     JSONArray roomList = (JSONArray) jsonObject.get("rooms");
@@ -88,27 +85,18 @@ public class ManagerApp extends Thread{
                 Room room2 = new Room(null, 0,null,0,0,null);
                 ManagerApp manager = new ManagerApp(room2,2,rooms);
                 manager.start();
+                manager.join();
                 rooms = manager.getRooms();
-
-
-                Reservations.forEach((area, rooms) -> {
-                    int count = 0; // Counter for bookings within the specified period for the current area
-                    for (Room room : rooms) {
-                        // Check each booked period for overlaps with the specified period
-                        for (String bookedPeriod : room.getBooked()) {
-                            String[] dateParts = bookedPeriod.split("-");
-                            LocalDate bookedStart = LocalDate.parse(dateParts[0], formatter);
-                            LocalDate bookedEnd = LocalDate.parse(dateParts[1], formatter);
-
-                            // Check for overlap between booked period and specified period
-                            if (!(bookedEnd.isBefore(startDate) || bookedStart.isAfter(endDate))) {
-                                count++;
-                                break; // Assuming you count the room once for any overlap, remove break if counting all overlaps
-                            }
+                Set<String> keys = Reservations.keySet();
+                for (String key : keys) {
+                    int count=0;
+                    for(Room room1:rooms){
+                        if(room1.getArea().equals(key)){
+                            count=count+room1.isBookedInPeriod(startDate,endDate);
                         }
                     }
-                    System.out.println("Area: " + area + ", Reservations in period: " + count);
-                });
+                    System.out.println(key+":"+count);
+                }
             }
         } while (number != 3);
 
@@ -118,7 +106,7 @@ public class ManagerApp extends Thread{
     ObjectInputStream in=null;
     ObjectOutputStream out=null;
     private Room room;
-    int num;
+    private int num;
     private ArrayList<Room> Rooms;
 
     public ManagerApp(Room room, int i, ArrayList<Room> rooms){
@@ -133,18 +121,24 @@ public class ManagerApp extends Thread{
             requestSocket=new Socket("localhost",1234);
 
             this.out=new ObjectOutputStream(requestSocket.getOutputStream());
-            this.in = new ObjectInputStream(requestSocket.getInputStream());
 
-            if (this.num == 1){
-                this.out.writeObject(room);
-                this.out.flush();
-            } else {
+            this.out.writeObject(room);
+            this.out.flush();
+            this.out.writeInt(num);
+            this.out.flush();
 
+            if (this.num == 2){
+                this.in = new ObjectInputStream(requestSocket.getInputStream());
                 ArrayList<Room> updater = new ArrayList<>();
+                updater= (ArrayList<Room>) this.in.readObject();
+                for (Room room:updater){
+                    for(int i=0; i<Rooms.size();i++){
+                        if(Rooms.get(i).getRoomName().equals(room.getRoomName())){
+                            Rooms.set(i,room);
+                        }
+                    }
+                }
 
-                this.out.writeInt(0);
-                this.out.flush();
-                this.Rooms = (ArrayList<Room>) this.in.readObject();
             }
 
 
