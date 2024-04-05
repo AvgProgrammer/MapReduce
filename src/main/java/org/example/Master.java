@@ -106,13 +106,8 @@ public class Master {
                     tenantOut.flush();
                 }
 
-            }else if(receivedObject.toString().startsWith("BookedRoom:")){
-                String[] parts = receivedObject.toString().split(":");
-                forwardBookingToManagerApp(parts[1], parts[2], parts[3]);
-
             }
             if (num == 2){
-
                 ArrayList<Room> listOfArrays = new ArrayList<>();
 
                 for (Worker worker: Workers){
@@ -122,6 +117,9 @@ public class Master {
                 ObjectOutputStream tenantOut = new ObjectOutputStream(socket.getOutputStream());
                 tenantOut.writeObject(listOfArrays);
                 tenantOut.flush();
+            }else if(num==4){
+                String[] parts = receivedObject.toString().split(":");
+                forwardBookingToManagerApp(parts[1], parts[2], parts[3]);
             }
         }catch (IOException e) {
             System.err.println("Failed to change workers: " + e.getMessage());

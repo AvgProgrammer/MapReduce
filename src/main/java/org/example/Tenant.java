@@ -94,12 +94,13 @@ public class Tenant extends Thread{
     public void run() {
 
         try {
-
             requestSocket=new Socket("localhost",1234);
 
             this.out=new ObjectOutputStream(requestSocket.getOutputStream());
 
             this.out.writeObject(filter);
+            this.out.flush();
+            this.out.writeInt(3);
             this.out.flush();
 
             this.in = new ObjectInputStream(requestSocket.getInputStream());
@@ -141,6 +142,8 @@ public class Tenant extends Thread{
                 scanner.close();
 
                 out.writeObject("BookedRoom:" + selectedRoom.getRoomName() + ":" + startDate + ":" + endDate);
+                out.flush();
+                out.writeInt(4);
                 out.flush();
             }
 
