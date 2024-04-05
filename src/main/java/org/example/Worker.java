@@ -115,4 +115,8 @@ public class Worker{
         FilteredRooms = Rooms;
         return FilteredRooms;
     }
+
+    public ArrayList<Room> getWorkers(){
+        return Rooms;
+    }
 }

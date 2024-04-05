@@ -12,10 +12,10 @@ public class Master {
     private ServerSocket serverSocket;
     private ServerSocket resultServerSocket;
     private Socket socket=new Socket();
-    private ArrayList<Worker> Workers=new ArrayList<>();
-    private ArrayList<Room> aggregatedResults = new ArrayList<>();
+    private final ArrayList<Worker> Workers=new ArrayList<>();
+    private final ArrayList<Room> aggregatedResults = new ArrayList<>();
     private final Object resultsLock = new Object();
-    private int NumberOfWorkers;
+    private final int NumberOfWorkers;
     private int receivedResults = 0;
 
     public Master(int NumberOfWorkers){
@@ -52,7 +52,8 @@ public class Master {
                 }
                 this.in = new ObjectInputStream(socket.getInputStream());
                 Object receivedObject = in.readObject();
-                changeWorker(receivedObject,socket);
+                int num = in.readInt();
+                changeWorker(receivedObject,socket, num);
             }
         }catch (IOException e){
             e.printStackTrace();
@@ -69,7 +70,7 @@ public class Master {
             }
         }
     }
-    public void changeWorker(Object receivedObject,Socket socket){
+    public void changeWorker(Object receivedObject,Socket socket, int num){
         try {
             if (receivedObject instanceof Room room) {
 
@@ -109,6 +110,18 @@ public class Master {
                 String[] parts = receivedObject.toString().split(":");
                 forwardBookingToManagerApp(parts[1], parts[2], parts[3]);
 
+            }
+            if (num == 2){
+
+                ArrayList<Room> listOfArrays = new ArrayList<>();
+
+                for (Worker worker: Workers){
+                    listOfArrays.addAll( worker.getWorkers());
+                }
+
+                ObjectOutputStream tenantOut = new ObjectOutputStream(socket.getOutputStream());
+                tenantOut.writeObject(listOfArrays);
+                tenantOut.flush();
             }
         }catch (IOException e) {
             System.err.println("Failed to change workers: " + e.getMessage());

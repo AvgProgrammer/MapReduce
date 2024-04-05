@@ -19,18 +19,19 @@ public class ManagerApp extends Thread{
 
     public static void main(String[] args) {
 
-        ArrayList<Room> rooms=new ArrayList<>();
+        ArrayList<Room> rooms = new ArrayList<>();
         HashMap<String,ArrayList<Room>> Reservations=new HashMap<>();
         int number;
         do {
             Scanner sc=new Scanner(System.in);
             System.out.println("Please choose one of the following\n1)Add file\n2)Total Reservations by Region\n3)Exit");
             number = sc.nextInt();
+
             if (number == 1) {
                 JSONParser parser = new JSONParser();
 
                 try {
-                    Object obj = parser.parse(new FileReader("C:\\Users\\user\\IdeaProjects\\Kata2024\\src\\main\\java\\org\\example\\room_details_expanded.json"));
+                    Object obj = parser.parse(new FileReader("/Users/olgatympakianaki/Library/CloudStorage/OneDrive-aueb.gr/University/6th Semester/Distributed systems/Project/src/main/java/org/example/room_details_expanded.json"));
                     JSONObject jsonObject = (JSONObject) obj;
 
                     JSONArray roomList = (JSONArray) jsonObject.get("rooms");
@@ -61,7 +62,7 @@ public class ManagerApp extends Thread{
 
                     }
                     for(Room room:rooms){
-                        new ManagerApp(room).start();
+                        new ManagerApp(room,1, rooms).start();
                     }
 
                 } catch (Exception e) {
@@ -84,9 +85,15 @@ public class ManagerApp extends Thread{
                 LocalDate startDate = LocalDate.parse(parts[0], formatter);
                 LocalDate endDate = LocalDate.parse(parts[1], formatter);
 
-                Reservations.forEach((area, roomList) -> {
+                Room room2 = new Room(null, 0,null,0,0,null);
+                ManagerApp manager = new ManagerApp(room2,2,rooms);
+                manager.start();
+                rooms = manager.getRooms();
+
+
+                Reservations.forEach((area, rooms) -> {
                     int count = 0; // Counter for bookings within the specified period for the current area
-                    for (Room room : roomList) {
+                    for (Room room : rooms) {
                         // Check each booked period for overlaps with the specified period
                         for (String bookedPeriod : room.getBooked()) {
                             String[] dateParts = bookedPeriod.split("-");
@@ -111,10 +118,13 @@ public class ManagerApp extends Thread{
     ObjectInputStream in=null;
     ObjectOutputStream out=null;
     private Room room;
+    int num;
     private ArrayList<Room> Rooms;
 
-    public ManagerApp(Room room){
+    public ManagerApp(Room room, int i, ArrayList<Room> rooms){
         this.room=room;
+        this.num = i;
+        this.Rooms = rooms;
     }
     public void run() {
 
@@ -123,14 +133,27 @@ public class ManagerApp extends Thread{
             requestSocket=new Socket("localhost",1234);
 
             this.out=new ObjectOutputStream(requestSocket.getOutputStream());
+            this.in = new ObjectInputStream(requestSocket.getInputStream());
 
-            this.out.writeObject(room);
-            this.out.flush();
+            if (this.num == 1){
+                this.out.writeObject(room);
+                this.out.flush();
+            } else {
+
+                ArrayList<Room> updater = new ArrayList<>();
+
+                this.out.writeInt(0);
+                this.out.flush();
+                this.Rooms = (ArrayList<Room>) this.in.readObject();
+            }
+
 
         } catch (UnknownHostException unknownHost) {
             System.err.println("You are trying to connect to an unknown host!");
         } catch (IOException ioException) {
             ioException.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         } finally {
             try {
                 out.close();
@@ -139,5 +162,9 @@ public class ManagerApp extends Thread{
                 ioException.printStackTrace();
             }
         }
+    }
+
+    private ArrayList<Room> getRooms(){
+        return this.Rooms;
     }
 }
