@@ -1,14 +1,11 @@
 package org.example;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
+
+import java.io.*;
+import java.net.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Worker{
     private ArrayList<Room> Rooms;
@@ -17,11 +14,38 @@ public class Worker{
     private final Object lock = new Object();
     private final ArrayList<WorkerThread> workerThreads ;
     private final int threadCount = 5;
+    ObjectInputStream in=null;
+    ObjectOutputStream out=null;
 
     public Worker() {
         this.Rooms=new ArrayList<>();
         this.workerThreads=new ArrayList<>();
     }
+
+    /*public static void main(String[] args) {
+
+    }
+    public void startWorker() {
+        try {
+            connection=new Socket("localhost",1234);
+            this.out=new ObjectOutputStream(connection.getOutputStream());
+
+            this.out.writeInt(6);
+            this.out.flush();
+            while(true) {
+
+            }
+        }catch(IOException e){
+        e.printStackTrace();
+        }finally {
+            try {
+                out.close();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        }
+    }*/
+
 
     public void addTask(Object task,Socket socket){
         if(workerThreads.size()<threadCount){

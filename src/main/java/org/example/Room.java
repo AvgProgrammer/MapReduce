@@ -27,8 +27,9 @@ public class Room implements Serializable {
         String[] parts;
         for(String key: Booked){
             parts = key.split("-");
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             try {
+                System.out.println(key);
                 LocalDate StartDate1 = LocalDate.parse(parts[0], formatter);
                 LocalDate EndDate1 = LocalDate.parse(parts[1], formatter);
                 if(!StartDate1.isAfter(endDate) && !EndDate1.isBefore(startDate)){
@@ -36,7 +37,7 @@ public class Room implements Serializable {
                 }
 
             } catch (java.time.format.DateTimeParseException e) {
-                System.out.println("Invalid date format. Please enter the date in the format DD-MM-YYYY.");
+                System.out.println("Invalid date format. Please enter the date in the format DD/MM/YYYY.");
             }
         }
         return false;
@@ -46,7 +47,7 @@ public class Room implements Serializable {
         int count=0;
         for(String key: Booked){
             parts = key.split("-");
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             try {
                 LocalDate StartDate1 = LocalDate.parse(parts[0], formatter);
                 LocalDate EndDate1 = LocalDate.parse(parts[1], formatter);
@@ -62,7 +63,7 @@ public class Room implements Serializable {
     }
 
     public void AddDate(LocalDate startdate,LocalDate enddate){
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         String startString = startdate.format(formatter);
         String endString = enddate.format(formatter);
         Booked.add(startString+"-"+endString);

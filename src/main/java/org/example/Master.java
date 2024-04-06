@@ -17,12 +17,14 @@ public class Master {
     private final Object resultsLock = new Object();
     private final int NumberOfWorkers;
     private int receivedResults = 0;
+    private HashMap<Worker,Socket> SocketToWorker=new HashMap<>();
 
     public Master(int NumberOfWorkers){
         this.NumberOfWorkers = NumberOfWorkers;
     }
     public static void main(String[] args){
         Master masterServer=new Master(3);
+
         masterServer.startResultListener();
         masterServer.StartServer();
     }
@@ -43,17 +45,19 @@ public class Master {
             while (true) {
                 socket=serverSocket.accept();
                 System.out.println("Client connected.");
-                Random rand = new Random();
-                int number;
-                if (NumberOfWorkers!=0) {
-                    number = rand.nextInt(50) % NumberOfWorkers;
-                }else{
-                    number=0;
-                }
                 this.in = new ObjectInputStream(socket.getInputStream());
-                Object receivedObject = in.readObject();
                 int num = in.readInt();
-                changeWorker(receivedObject,socket, num);
+                if(num!=6) {
+                    Object receivedObject = in.readObject();
+                    changeWorker(receivedObject, socket, num);
+                }else{
+                    /*if(SocketToWorker.size()<NumberOfWorkers) {
+                        Worker worker = new Worker();
+                        SocketToWorker.put(worker, socket);
+                    }else{
+
+                    }*/
+                }
             }
         }catch (IOException e){
             e.printStackTrace();
@@ -72,7 +76,7 @@ public class Master {
     }
     public void changeWorker(Object receivedObject,Socket socket, int num){
         try {
-            if (receivedObject instanceof Room room) {
+            if (receivedObject instanceof Room room && num==1) {
 
                 int workerIndex = h(room.getRoomName());
                 System.out.println("Room with room name:" + room.getRoomName() + " Added to worker:" + workerIndex);
@@ -101,7 +105,6 @@ public class Master {
                     }
                     // Send aggregatedResults back to the client
                     ObjectOutputStream tenantOut = new ObjectOutputStream(socket.getOutputStream());
-                    System.out.println(aggregatedResults.size());
                     tenantOut.writeObject(aggregatedResults);
                     tenantOut.flush();
                 }

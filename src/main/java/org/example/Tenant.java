@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter;
 
 public class Tenant extends Thread{
 
-    public static void main(String[] args){
+    public static void main(String[] args) throws InterruptedException {
         System.out.println("Hello Customer");
         int answer=0;
         String area="";
@@ -66,27 +66,74 @@ public class Tenant extends Thread{
             System.out.println("Do you want to enter another filter:\n1)Yes\n2)No");
             answer2= sc.nextInt();
         }while (answer2==1);
+        sc.nextLine();
         Filter filter=new Filter(area,time,numb,price,stars);
-        new Tenant(filter, sc).start();
+        Tenant tenant=new Tenant(filter, 3 , "","","");
+        tenant.start();
+        tenant.join();
+        ArrayList<Room> rooms1=tenant.getRooms();
+        if(rooms1.isEmpty()) {
+            System.out.println("No rooms found.");
+            return;
+        } else {
+            for (int i = 0; i < rooms1.size(); i++) {
+                System.out.println((i + 1) + ") " + rooms1.get(i).getRoomName());
+            }
+        }
+        System.out.println("Enter the number of the room you wish to choose:");
+        int choice=sc.nextInt();
+
+        if(choice < 1 || choice > rooms1.size()) {
+            System.out.println("Invalid choice. Exiting.");
+            return;
+        }
+
+        Room selectedRoom = rooms1.get(choice - 1);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        // Split the input string into start and end date strings
+        String[] parts =  filter.getTime().split("-");
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Invalid date range format. Expected format: dd/MM/yyyy-dd/MM/yyyy");
+        }
+        LocalDate startDate = LocalDate.parse(parts[0], formatter);
+        LocalDate endDate = LocalDate.parse(parts[1], formatter);
+        System.out.println("You selected: " + selectedRoom.getRoomName());
+        if(book(selectedRoom,startDate,endDate)) {
+
+            Tenant tenant1 = new Tenant(filter, 4, selectedRoom.getRoomName(), parts[0], parts[1]);
+            tenant1.start();
+        }
+
     }
     Socket requestSocket;
     ObjectInputStream in=null;
     ObjectOutputStream out=null;
     private Filter filter;
-    private Scanner scanner;
+    private  int num;
+    private String name;
+    private String startDate;
+    private String endDate;
 
-    public Tenant(Filter filter,Scanner scanner) {
+    private ArrayList<Room> rooms;
+    public Tenant(Filter filter,int num,String name, String startDate, String endDate) {
         this.filter=filter;
-        this.scanner = scanner;
+        this.num=num;
+        this.name=name;
+        this.startDate=startDate;
+        this.endDate=endDate;
+        this.rooms=new ArrayList<>();
     }
 
-    public void book(Room room, LocalDate startDate, LocalDate endDate) {
+    private static boolean book(Room room, LocalDate startDate, LocalDate endDate) {
         synchronized (room) {
             if (!room.isBooked(startDate, endDate)) {
                 room.AddDate(startDate, endDate);
                 System.out.println("Room " + room.getRoomName() + " successfully booked from " + startDate + " to " + endDate);
+                return true;
             } else {
                 System.out.println("Room " + room.getRoomName() + " is not available for the selected dates.");
+                return false;
             }
         }
     }
@@ -94,59 +141,26 @@ public class Tenant extends Thread{
     public void run() {
 
         try {
-            //DESKTOP-DTLJ7MI
             requestSocket=new Socket("localhost",1234);
 
             this.out=new ObjectOutputStream(requestSocket.getOutputStream());
+            if(num==3) {
+                this.out.writeObject(filter);
+                this.out.flush();
+                this.out.writeInt(3);
+                this.out.flush();
 
-            this.out.writeObject(filter);
-            this.out.flush();
-            this.out.writeInt(3);
-            this.out.flush();
+                this.in = new ObjectInputStream(requestSocket.getInputStream());
 
-            this.in = new ObjectInputStream(requestSocket.getInputStream());
+                rooms= (ArrayList<Room>) this.in.readObject();
 
-            Object response = in.readObject();
-            if (response instanceof ArrayList<?>) {
-                ArrayList<Room> receivedRooms = (ArrayList<Room>) response;
-                // Rest of the logic to handle received rooms, including booking
-                if(receivedRooms.isEmpty()) {
-                    System.out.println("No rooms found.");
-                    return;
-                } else {
-                    for (int i = 0; i < receivedRooms.size(); i++) {
-                        System.out.println((i + 1) + ") " + receivedRooms.get(i).getRoomName());
-                    }
-                }
-                System.out.println("Enter the number of the room you wish to choose:");
-                int choice=scanner.nextInt();
-
-                if(choice < 1 || choice > receivedRooms.size()) {
-                    System.out.println("Invalid choice. Exiting.");
-                    return;
-                }
-
-                Room selectedRoom = receivedRooms.get(choice - 1);
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy").withLocale(Locale.US);
-
-                // Split the input string into start and end date strings
-                String[] parts =  this.filter.getTime().split("-");
-                if (parts.length != 2) {
-                    throw new IllegalArgumentException("Invalid date range format. Expected format: dd/MM/yyyy-dd/MM/yyyy");
-                }
-
-                LocalDate startDate = LocalDate.parse(parts[0], formatter);
-                LocalDate endDate = LocalDate.parse(parts[1], formatter);
-                book(selectedRoom,startDate,endDate);
-                System.out.println("You selected: " + selectedRoom.getRoomName());
-
-                scanner.close();
-
-                out.writeObject("BookedRoom:" + selectedRoom.getRoomName() + ":" + startDate + ":" + endDate);
+            }else{
+                out.writeObject("BookedRoom:" + name + ":" + startDate + ":" + endDate);
                 out.flush();
                 out.writeInt(4);
                 out.flush();
             }
+
 
         } catch (UnknownHostException unknownHost) {
             System.err.println("You are trying to connect to an unknown host!");
@@ -162,5 +176,8 @@ public class Tenant extends Thread{
                 ioException.printStackTrace();
             }
         }
+    }
+    public ArrayList<Room> getRooms(){
+        return this.rooms;
     }
 }
