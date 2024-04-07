@@ -141,13 +141,14 @@ public class Tenant extends Thread{
     public void run() {
 
         try {
+            //DESKTOP-DTLJ7MI
             requestSocket=new Socket("localhost",1234);
 
             this.out=new ObjectOutputStream(requestSocket.getOutputStream());
             if(num==3) {
-                this.out.writeObject(filter);
-                this.out.flush();
                 this.out.writeInt(3);
+                this.out.flush();
+                this.out.writeObject(filter);
                 this.out.flush();
 
                 this.in = new ObjectInputStream(requestSocket.getInputStream());
@@ -155,9 +156,9 @@ public class Tenant extends Thread{
                 rooms= (ArrayList<Room>) this.in.readObject();
 
             }else{
-                out.writeObject("BookedRoom:" + name + ":" + startDate + ":" + endDate);
-                out.flush();
                 out.writeInt(4);
+                out.flush();
+                out.writeObject(name + ":" + startDate + ":" + endDate);
                 out.flush();
             }
 

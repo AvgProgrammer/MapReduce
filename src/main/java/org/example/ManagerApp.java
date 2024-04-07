@@ -122,9 +122,9 @@ public class ManagerApp extends Thread{
 
             this.out=new ObjectOutputStream(requestSocket.getOutputStream());
 
-            this.out.writeObject(room);
-            this.out.flush();
             this.out.writeInt(num);
+            this.out.flush();
+            this.out.writeObject(room);
             this.out.flush();
 
             if (this.num == 2){

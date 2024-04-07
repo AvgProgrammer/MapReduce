@@ -53,8 +53,13 @@ public class Filter implements Serializable {
     public double getStars() {
         return stars;
     }
-
     public void setStars(double stars) {
         this.stars = stars;
+    }
+    public boolean isCompatalbe(Room room){
+        if(!this.getArea().equals(room.getArea())){
+            return false;
+        }
+        return true;
     }
 }

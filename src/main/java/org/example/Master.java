@@ -9,15 +9,18 @@ public class Master {
     private int port=1234;
     private int resultPort = 1235;
     ObjectInputStream in;
+    ObjectOutputStream out;
     private ServerSocket serverSocket;
     private ServerSocket resultServerSocket;
     private Socket socket=new Socket();
-    private final ArrayList<Worker> Workers=new ArrayList<>();
-    private final ArrayList<Room> aggregatedResults = new ArrayList<>();
-    private final Object resultsLock = new Object();
+    private final ArrayList<Room> aggregatedFilters = new ArrayList<>();
+    private final ArrayList<Room> aggregatedRooms = new ArrayList<>();
+    private final Object resultsFilter = new Object();
+    private final Object resultsRoom = new Object();
     private final int NumberOfWorkers;
-    private int receivedResults = 0;
-    private HashMap<Worker,Socket> SocketToWorker=new HashMap<>();
+    private int receivedFilter = 0;
+    private int receivedRoom = 0;
+    private ArrayList<Socket> SocketToWorker=new ArrayList<>();
 
     public Master(int NumberOfWorkers){
         this.NumberOfWorkers = NumberOfWorkers;
@@ -30,34 +33,30 @@ public class Master {
     }
     public int h(String name){
         int hashCode = name.hashCode();
-        int numberOfWorkers = Workers.size();
-        return Math.abs(hashCode) % numberOfWorkers;
+        int numberOfWorkers = SocketToWorker.size();
+        return Math.abs(hashCode) % SocketToWorker.size();
     }
     public void StartServer(){
         try{
             serverSocket=new ServerSocket(port);
             System.out.println("Server connected.");
-            for(int i=0;i<NumberOfWorkers;i++){
-                Worker worker=new Worker();
-                Workers.add(worker);
-            }
             int workerCount=0;
             while (true) {
                 socket=serverSocket.accept();
                 System.out.println("Client connected.");
                 this.in = new ObjectInputStream(socket.getInputStream());
                 int num = in.readInt();
-                if(num!=6) {
+                if(num!=6 && num!=0) {
                     Object receivedObject = in.readObject();
-                    changeWorker(receivedObject, socket, num);
-                }else{
-                    /*if(SocketToWorker.size()<NumberOfWorkers) {
-                        Worker worker = new Worker();
-                        SocketToWorker.put(worker, socket);
-                    }else{
-
-                    }*/
+                    changeWorker(receivedObject, num);
+                } else if (num==6) {
+                    System.out.println("Worker connected.");
+                   if(SocketToWorker.size()<NumberOfWorkers) {
+                        SocketToWorker.add(socket);
+                        System.out.println(SocketToWorker.size());
+                   }
                 }
+
             }
         }catch (IOException e){
             e.printStackTrace();
@@ -74,29 +73,35 @@ public class Master {
             }
         }
     }
-    public void changeWorker(Object receivedObject,Socket socket, int num){
+    public void changeWorker(Object receivedObject, int num){
         try {
             if (receivedObject instanceof Room room && num==1) {
 
                 int workerIndex = h(room.getRoomName());
                 System.out.println("Room with room name:" + room.getRoomName() + " Added to worker:" + workerIndex);
-                Workers.get(workerIndex).addTask(receivedObject,socket);
+                Socket socket1=SocketToWorker.get(workerIndex);
+                ObjectOutputStream outWorker=new ObjectOutputStream(socket1.getOutputStream());
 
+                outWorker.writeObject(receivedObject);
+                outWorker.flush();
+
+                outWorker.writeInt(SocketToWorker.size());
+                outWorker.flush();
             } else if (receivedObject instanceof Filter filter) {
                 System.out.println("Processing the filter in area:"+((Filter) receivedObject).getArea());
 
-                synchronized (resultsLock) {
-                    aggregatedResults.clear();
-                    receivedResults = 0;
+                synchronized (resultsFilter) {
+                    aggregatedFilters.clear();
+                    receivedFilter = 0;
                 }
 
-                for (int j = 0; j < Workers.size(); j++) {
-                    Map(j, filter,socket);
+                for (int j = 0; j < SocketToWorker.size(); j++) {
+                    Map(j, filter);
                 }
-                synchronized (resultsLock) {
-                    while (receivedResults < Workers.size()) {
+                synchronized (resultsFilter) {
+                    while (receivedFilter < 1) {
                         try {
-                            resultsLock.wait(); // Wait for all results
+                            resultsFilter.wait(); // Wait for all results
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                             System.err.println("Waiting for results was interrupted.");
@@ -105,7 +110,7 @@ public class Master {
                     }
                     // Send aggregatedResults back to the client
                     ObjectOutputStream tenantOut = new ObjectOutputStream(socket.getOutputStream());
-                    tenantOut.writeObject(aggregatedResults);
+                    tenantOut.writeObject(aggregatedFilters);
                     tenantOut.flush();
                 }
 
@@ -113,30 +118,65 @@ public class Master {
             if (num == 2){
                 ArrayList<Room> listOfArrays = new ArrayList<>();
 
-                for (Worker worker: Workers){
+                /*for (Worker worker: Workers){
                     listOfArrays.addAll( worker.getWorkers());
                 }
-
-                ObjectOutputStream tenantOut = new ObjectOutputStream(socket.getOutputStream());
-                tenantOut.writeObject(listOfArrays);
-                tenantOut.flush();
+                */
+                synchronized (resultsRoom) {
+                    aggregatedRooms.clear();
+                    receivedRoom = 0;
+                }
+                System.out.println("Eimai edw");
+                for (int i = 0; i < SocketToWorker.size(); i++) {
+                    Map(i, listOfArrays);
+                    System.out.println("Esteila");
+                }
+                synchronized (resultsRoom) {
+                    while (receivedRoom < 1) {
+                        try {
+                            resultsRoom.wait(); // Wait for all results
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            System.err.println("Waiting for results was interrupted.");
+                            // Consider whether to break or continue waiting here
+                        }
+                    }
+                    // Send aggregatedResults back to the client
+                    ObjectOutputStream tenantOut = new ObjectOutputStream(socket.getOutputStream());
+                    tenantOut.writeObject(aggregatedRooms);
+                    tenantOut.flush();
+                }
             }else if(num==4){
-                String[] parts = receivedObject.toString().split(":");
-                forwardBookingToManagerApp(parts[1], parts[2], parts[3]);
+                for (int i = 0; i < SocketToWorker.size(); i++) {
+                    Socket socket1=SocketToWorker.get(i);
+                    ObjectOutputStream outWorker=new ObjectOutputStream(socket1.getOutputStream());
+                    System.out.println("Sending Results to map");
+
+                    outWorker.writeObject(receivedObject);
+                    outWorker.flush();
+
+                    outWorker.writeInt(SocketToWorker.size());
+                    outWorker.flush();
+                    System.out.println("Esteila");
+                }
+
             }
         }catch (IOException e) {
             System.err.println("Failed to change workers: " + e.getMessage());
         }
     }
-    private void Map(int MapId,Filter filter,Socket socket){
-            Workers.get(MapId).addTask(filter,socket);
+    private void Map(int MapId,Object Object) throws IOException {
+        Socket socket1=SocketToWorker.get(MapId);
+        ObjectOutputStream outWorker=new ObjectOutputStream(socket1.getOutputStream());
+        System.out.println("Sending Results to map");
+
+        outWorker.writeObject(Object);
+        outWorker.flush();
+
+        outWorker.writeInt(SocketToWorker.size());
+        outWorker.flush();
     }
 
-    private void forwardBookingToManagerApp(String roomName, String startDate, String endDate) {
-        for(Worker worker:Workers){
-            worker.setBooked( roomName, startDate, endDate);
-        }
-    }
 
     public void startResultListener() {
         new Thread(() -> {
@@ -150,13 +190,25 @@ public class Master {
 
                     new Thread(() -> {
                         try (ObjectInputStream objectInputStream = new ObjectInputStream(workerSocket.getInputStream())) {
-                            ArrayList<Room> workerResults = (ArrayList<Room>) objectInputStream.readObject();
-                            synchronized (resultsLock) {
-                                aggregatedResults.addAll(workerResults);
-                                receivedResults++;
-                                System.out.println("Results were sent " + aggregatedResults.size());
-                                if (receivedResults == Workers.size()) {
-                                    resultsLock.notifyAll(); // Notify that all results have been received
+                            ArrayList<Room> Results = (ArrayList<Room>) objectInputStream.readObject();
+                            int number=objectInputStream.readInt();
+                            if(number==0){
+                            synchronized (resultsFilter) {
+                                aggregatedFilters.addAll(Results);
+                                receivedFilter++;
+                                System.out.println("Results were sent " + aggregatedFilters.size());
+                                if (receivedFilter == 1) {
+                                    resultsFilter.notifyAll(); // Notify that all results have been received
+                                }
+                            }
+                            }else{
+                                synchronized (resultsRoom) {
+                                    aggregatedRooms.addAll(Results);
+                                    receivedRoom++;
+                                    System.out.println("Results were sent " + aggregatedRooms.size());
+                                    if (receivedRoom == 1) {
+                                        resultsRoom.notifyAll(); // Notify that all results have been received
+                                    }
                                 }
                             }
                         } catch (Exception e) {
