@@ -1,6 +1,9 @@
 package org.example;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class Filter implements Serializable {
 
@@ -60,6 +63,17 @@ public class Filter implements Serializable {
         if(!this.getArea().equals(room.getArea())){
             return false;
         }
+        String[] parts=this.getTime().split("-");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            try {
+                LocalDate StartDate1 = LocalDate.parse(parts[0], formatter);
+                LocalDate EndDate1 = LocalDate.parse(parts[1], formatter);
+                if(room.isBooked(StartDate1,EndDate1)){
+                    return false;
+                }
+            }catch (java.time.format.DateTimeParseException e){
+                e.printStackTrace();
+            }
         return true;
     }
 }
