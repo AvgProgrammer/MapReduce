@@ -141,8 +141,8 @@ public class Tenant extends Thread{
     public void run() {
 
         try {
-            
-            requestSocket=new Socket("10.26.40.36",1234);
+            //10.26.40.36
+            requestSocket=new Socket("localhost",1234);
 
             this.out=new ObjectOutputStream(requestSocket.getOutputStream());
             if(num==3) {

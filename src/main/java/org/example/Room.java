@@ -12,10 +12,10 @@ public class Room implements Serializable {
     private int noOfPersons;
     private double stars;
     private String roomImage;
-    private int price;
+    private double price;
     private ArrayList<String> Booked;
 
-    public Room(String Name,int numbPerson,String Area,double stars,int reviews,int price,String img){
+    public Room(String Name,int numbPerson,String Area,double stars,int reviews,double price,String img){
         this.roomName=Name;
         this.area=Area;
         this.noOfReviews=reviews;
@@ -93,7 +93,7 @@ public class Room implements Serializable {
         return stars;
     }
 
-    public int getPrice() {
+    public double getPrice() {
         return price;
     }
 

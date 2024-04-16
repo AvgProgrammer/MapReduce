@@ -30,7 +30,7 @@ public class Worker{
     }
     public void startWorker() {
         try {
-            connection=new Socket("10.26.40.36",1234);
+            connection=new Socket("localhost",1234);
             this.out=new ObjectOutputStream(connection.getOutputStream());
 
             this.out.writeInt(6);
@@ -120,7 +120,7 @@ public class Worker{
                 try {
                     ArrayList<Room> filteredRooms = filteredRooms(filter);
                         // Assuming 'masterAddress' is the IP of the Master and 'masterPort' is the port it listens on for results
-                        Socket masterSocket = new Socket("10.26.40.36", 1235);
+                        Socket masterSocket = new Socket("localhost", 1236);
                         ObjectOutputStream outToMaster = new ObjectOutputStream(masterSocket.getOutputStream());
                         System.out.println("Sending to reducer");
                         // Send results. You might need to customize this part based on your application logic.
@@ -141,7 +141,7 @@ public class Worker{
                 System.out.println("Filter the rooms");
                 try {
                     // Assuming 'masterAddress' is the IP of the Master and 'masterPort' is the port it listens on for results
-                    Socket masterSocket = new Socket("10.26.40.36", 1236);
+                    Socket masterSocket = new Socket("localhost", 1236);
                     ObjectOutputStream outToMaster = new ObjectOutputStream(masterSocket.getOutputStream());
                     System.out.println("Sending to reducer");
                     // Send results. You might need to customize this part based on your application logic.
