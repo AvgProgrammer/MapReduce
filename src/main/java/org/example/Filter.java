@@ -63,6 +63,21 @@ public class Filter implements Serializable {
         if(!this.getArea().equals(room.getArea())){
             return false;
         }
+        // Check if stars match
+        if (this.getStars() != room.getStars()) {
+            return false;
+        }
+
+        // Check if price is within acceptable range
+        if (this.getPrice() > room.getPrice()) {
+            return false;
+        }
+
+        // Check if room can accommodate the number of persons
+        if (this.getNumb() > room.getNoOfPersons()) {
+            return false;
+        }
+
         String[] parts=this.getTime().split("-");
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             try {

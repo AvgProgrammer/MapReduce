@@ -142,7 +142,7 @@ public class Tenant extends Thread{
 
         try {
             
-            requestSocket=new Socket("localhost",1234);
+            requestSocket=new Socket("10.26.40.36",1234);
 
             this.out=new ObjectOutputStream(requestSocket.getOutputStream());
             if(num==3) {
@@ -153,7 +153,7 @@ public class Tenant extends Thread{
 
                 this.in = new ObjectInputStream(requestSocket.getInputStream());
 
-                rooms= (ArrayList<Room>) this.in.readObject();
+                rooms = (ArrayList<Room>) this.in.readObject();
 
             }else{
                 out.writeInt(4);

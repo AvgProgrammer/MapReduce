@@ -41,6 +41,7 @@ public class ManagerApp extends Thread{
                                 (String) roomJson.get("area"),
                                 ((Long) roomJson.get("stars")).doubleValue(),
                                 ((Long) roomJson.get("noOfReviews")).intValue(),
+                                ((Integer) roomJson.get("price")).intValue(),
                                 (String) roomJson.get("roomImage")
                         );
                         rooms.add(room);
@@ -82,7 +83,7 @@ public class ManagerApp extends Thread{
                 LocalDate startDate = LocalDate.parse(parts[0], formatter);
                 LocalDate endDate = LocalDate.parse(parts[1], formatter);
 
-                Room room2 = new Room(null, 0,null,0,0,null);
+                Room room2 = new Room(null, 0,null,0,0,0, null);
                 ManagerApp manager = new ManagerApp(room2,2,rooms);
                 manager.start();
                 manager.join();
@@ -118,7 +119,7 @@ public class ManagerApp extends Thread{
 
         try {
 
-            requestSocket=new Socket("localhost",1234);
+            requestSocket=new Socket("10.26.40.36",1234);
 
             this.out=new ObjectOutputStream(requestSocket.getOutputStream());
 

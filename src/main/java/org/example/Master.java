@@ -33,7 +33,6 @@ public class Master {
     }
     public int h(String name){
         int hashCode = name.hashCode();
-        int numberOfWorkers = SocketToWorker.size();
         return Math.abs(hashCode) % SocketToWorker.size();
     }
     public void StartServer(){

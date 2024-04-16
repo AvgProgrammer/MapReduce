@@ -12,15 +12,17 @@ public class Room implements Serializable {
     private int noOfPersons;
     private double stars;
     private String roomImage;
+    private int price;
     private ArrayList<String> Booked;
 
-    public Room(String Name,int numbPerson,String Area,double stars,int reviews,String img){
+    public Room(String Name,int numbPerson,String Area,double stars,int reviews,int price,String img){
         this.roomName=Name;
         this.area=Area;
         this.noOfReviews=reviews;
         this.noOfPersons=numbPerson;
         this.stars=stars;
         this.roomImage=img;
+        this.price = price;
         this.Booked=new ArrayList<>();
     }
     public boolean isBooked(LocalDate startDate, LocalDate endDate){
@@ -89,6 +91,10 @@ public class Room implements Serializable {
 
     public double getStars() {
         return stars;
+    }
+
+    public int getPrice() {
+        return price;
     }
 
     public String getRoomImage() {

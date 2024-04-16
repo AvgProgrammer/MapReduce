@@ -6,6 +6,7 @@
             "area": "Area1",
             "stars": 3,
             "noOfReviews": 15,
+            "price": 50,
             "roomImage": "/usr/bin/images/roomName.png"
         },
         {
@@ -14,6 +15,7 @@
             "area": "Area2",
             "stars": 5,
             "noOfReviews": 45,
+            "price": 80,
             "roomImage": "/usr/bin/images/luxury_suite.png"
         },
         {
@@ -22,6 +24,7 @@
             "area": "Area3",
             "stars": 2,
             "noOfReviews": 5,
+            "price": 75,
             "roomImage": "/usr/bin/images/economy_double.png"
         },
         {
@@ -30,6 +33,7 @@
             "area": "Area4",
             "stars": 4,
             "noOfReviews": 25,
+            "price": 70,
             "roomImage": "/usr/bin/images/family_room.png"
         },
         {
@@ -38,6 +42,7 @@
             "area": "Area5",
             "stars": 5,
             "noOfReviews": 50,
+            "price": 150,
             "roomImage": "/usr/bin/images/presidential_suite.png"
         }
     ]

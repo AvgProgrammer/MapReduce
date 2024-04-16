@@ -30,7 +30,7 @@ public class Worker{
     }
     public void startWorker() {
         try {
-            connection=new Socket("localhost",1234);
+            connection=new Socket("10.26.40.36",1234);
             this.out=new ObjectOutputStream(connection.getOutputStream());
 
             this.out.writeInt(6);
@@ -103,7 +103,7 @@ public class Worker{
                             return; // Exit on interruption
                         }
                     }
-                    task = taskQueue.removeFirst(); // Retrieve and remove the first task from the list
+                    task = taskQueue.remove(0); // Retrieve and remove the first task from the list
                 }
                 processTask(task); // Process the retrieved task
             }
@@ -120,7 +120,7 @@ public class Worker{
                 try {
                     ArrayList<Room> filteredRooms = filteredRooms(filter);
                         // Assuming 'masterAddress' is the IP of the Master and 'masterPort' is the port it listens on for results
-                        Socket masterSocket = new Socket("localhost", 1236);
+                        Socket masterSocket = new Socket("10.26.40.36", 1235);
                         ObjectOutputStream outToMaster = new ObjectOutputStream(masterSocket.getOutputStream());
                         System.out.println("Sending to reducer");
                         // Send results. You might need to customize this part based on your application logic.
@@ -141,7 +141,7 @@ public class Worker{
                 System.out.println("Filter the rooms");
                 try {
                     // Assuming 'masterAddress' is the IP of the Master and 'masterPort' is the port it listens on for results
-                    Socket masterSocket = new Socket("localhost", 1236);
+                    Socket masterSocket = new Socket("10.26.40.36", 1236);
                     ObjectOutputStream outToMaster = new ObjectOutputStream(masterSocket.getOutputStream());
                     System.out.println("Sending to reducer");
                     // Send results. You might need to customize this part based on your application logic.
@@ -170,9 +170,9 @@ public class Worker{
                         LocalDate date1 = LocalDate.parse(parts[1], formatter);
                         LocalDate date2 = LocalDate.parse(parts[2], formatter);
                         Rooms.get(i).AddDate(date1,date2);
-                        System.out.println("Room with name: "+ parts[0]+" is officialy booked");
+                        System.out.println("Room with name: "+ parts[0]+" is officially booked");
                         if(Rooms.get(i).isBooked(date1,date2)){
-                            System.out.println("Room with name: "+ parts[0]+" is officialy booked");
+                            System.out.println("Room with name: "+ parts[0]+" is officially booked");
                         }
                     }
                 }
