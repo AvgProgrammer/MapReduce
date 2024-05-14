@@ -15,6 +15,7 @@ public class Room implements Serializable {
     private double price;
     private ArrayList<String> Booked;
 
+    private String timePeriod;
     public Room(String Name,int numbPerson,String Area,double stars,int reviews,double price,String img){
         this.roomName=Name;
         this.area=Area;
@@ -27,6 +28,9 @@ public class Room implements Serializable {
     }
     public boolean isBooked(LocalDate startDate, LocalDate endDate){
         String[] parts;
+        if(isInAvailabilityPeriod(startDate,endDate)){
+
+        }
         for(String key: Booked){
             parts = key.split("-");
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -99,5 +103,27 @@ public class Room implements Serializable {
 
     public String getRoomImage() {
         return roomImage;
+    }
+
+    public void setTimePeriod(String timePeriod) {
+        this.timePeriod = timePeriod;
+    }
+    public boolean isInAvailabilityPeriod(LocalDate startDate, LocalDate endDate){
+        String Period=this.timePeriod;
+        String[] parts;
+        parts = Period.split("-");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        try {
+            System.out.println(Period);
+            LocalDate StartDate1 = LocalDate.parse(parts[0], formatter);
+            LocalDate EndDate1 = LocalDate.parse(parts[1], formatter);
+            if(StartDate1.isBefore(startDate) && EndDate1.isAfter(endDate)){
+                return  true;
+            }
+
+        } catch (java.time.format.DateTimeParseException e) {
+            System.out.println("Invalid date format. Please enter the date in the format DD/MM/YYYY.");
+        }
+        return false;
     }
 }
