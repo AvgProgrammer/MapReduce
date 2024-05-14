@@ -39,7 +39,13 @@ public class Worker{
                 this.in = new ObjectInputStream(connection.getInputStream());
                 Object task=in.readObject();
                 int num=in.readInt();
-                addTask(task,num);
+                int SocketToClient=-1;
+                if(task instanceof Filter  || task instanceof ArrayList<?>){
+                    SocketToClient=in.readInt();
+                    System.out.println(SocketToClient);
+                }
+                addTask(task,num,SocketToClient);
+
             }
         }catch(IOException e){
         e.printStackTrace();
@@ -54,18 +60,12 @@ public class Worker{
         }
     }
 
-    public void addTask(Object task,int num){
-        if(workerThreads.size()<threadCount){
-            WorkerThread thread=new WorkerThread(num);
-            workerThreads.add(thread);
-            thread.start();
-            taskQueue.add(task);
-        }else{
-            synchronized (lock) {
-                taskQueue.add(task);
-                lock.notify(); // Notify one of the waiting threads that a task is available
-            }
-        }
+    public void addTask(Object task,int num,int SocketToClient){
+        System.out.println("Mesa sto addTask :"+ SocketToClient);
+        WorkerThread thread=new WorkerThread(num,SocketToClient);
+        workerThreads.add(thread);
+        thread.start();
+        taskQueue.add(task);
     }
     public void setBooked(String room, String startDate, String endDate){
         for(int i=0; i<this.Rooms.size(); i++){
@@ -86,13 +86,18 @@ public class Worker{
         private Socket connection;
         ObjectInputStream in;
         ObjectOutputStream out;
-        private int num;
+        private final int num;
+        private int SocketToClient;
 
-        public WorkerThread(int num){
+        public WorkerThread(int num,int SocketToClient){
                 this.num=num;
+                this.SocketToClient=SocketToClient;
+        }
+        public void setSocketToClient(int number){
+            this.SocketToClient=number;
         }
         public void run() {
-            while (!isInterrupted()) {
+            /*while (!isInterrupted()) {
                 Object task = null;
                 synchronized (lock) {
                     while (taskQueue.isEmpty()) {
@@ -106,7 +111,10 @@ public class Worker{
                     task = taskQueue.remove(0); // Retrieve and remove the first task from the list
                 }
                 processTask(task); // Process the retrieved task
-            }
+            }*/
+            Object task = null;
+            task = taskQueue.remove(0);
+            processTask(task);
         }
         private void processTask(Object task) {
             if (task instanceof Room room) {
@@ -123,13 +131,20 @@ public class Worker{
                         Socket masterSocket = new Socket("localhost", 1236);
                         ObjectOutputStream outToMaster = new ObjectOutputStream(masterSocket.getOutputStream());
                         System.out.println("Sending to reducer");
-                        // Send results. You might need to customize this part based on your application logic.
+                        //Send the Number of Workers
                         outToMaster.writeInt(num);
                         outToMaster.flush();
-                        outToMaster.writeInt(0);
+
+                        System.out.println(num);
+                        //Send the Number that represent the Socket of Client
+                        outToMaster.writeInt(SocketToClient);
                         outToMaster.flush();
+
+                        System.out.println(SocketToClient);
+                        //Send the Number of Workers
                         outToMaster.writeObject(filteredRooms); // Example of sending filtered rooms
                         outToMaster.flush();
+
                         outToMaster.close();
                         masterSocket.close();
                 } catch (IOException e) {
@@ -147,10 +162,16 @@ public class Worker{
                     // Send results. You might need to customize this part based on your application logic.
                     outToMaster.writeInt(num);
                     outToMaster.flush();
+
                     outToMaster.writeInt(1);
                     outToMaster.flush();
+
+                    outToMaster.writeInt(SocketToClient);
+                    outToMaster.flush();
+
                     outToMaster.writeObject(Rooms); // Example of sending filtered rooms
                     outToMaster.flush();
+
                     outToMaster.close();
                     masterSocket.close();
                 } catch (IOException e) {

@@ -9,7 +9,7 @@ public class Reducer {
     private int NumberOfWorkers=0;
     private Socket socket=new Socket();
     private int port=1236;
-    private Socket requestSocket;
+    private HashMap<Integer ,Integer > ClientIndexToRoomsMap=new HashMap<>() ;
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private ArrayList<Room> Rooms=new ArrayList();
@@ -72,29 +72,48 @@ public class Reducer {
                 System.out.println("Worker is connected.");
                 this.in=new ObjectInputStream(socket.getInputStream());
                 NumberOfWorkers=in.readInt();
-                int FilterOrNot=in.readInt();
+
+                System.out.println("Number of workers: "+NumberOfWorkers);
+                int NumberToSocket;
+                NumberToSocket=in.readInt();
+
+                System.out.println("Number of rooms to socket: "+NumberToSocket);
                 ArrayList<Room> rooms= (ArrayList<Room>) in.readObject();
-                if(count<NumberOfWorkers){
+
+                if(!ClientIndexToRoomsMap.containsKey(NumberToSocket)){
+                    ClientIndexToRoomsMap.put(NumberToSocket,1);
                     SharedResult sharedResult=new SharedResult();
                     System.out.println(filteredRooms.size());
                     ReducerThread thread=new ReducerThread(filteredRooms,rooms,sharedResult);
                     thread.start();thread.join();
                     filteredRooms=sharedResult.getResult();
                     System.out.println(filteredRooms.size());
-                    count++;
+                }else{
+                    ClientIndexToRoomsMap.compute(NumberToSocket, (k, WorkerCounter) -> WorkerCounter);
+                    SharedResult sharedResult=new SharedResult();
+                    System.out.println(filteredRooms.size());
+                    ReducerThread thread=new ReducerThread(filteredRooms,rooms,sharedResult);
+                    thread.start();thread.join();
+                    filteredRooms=sharedResult.getResult();
+                    System.out.println(filteredRooms.size());
                 }
-                if(count>=NumberOfWorkers){
+                if (ClientIndexToRoomsMap.get(NumberToSocket)>=NumberOfWorkers){
                     System.out.println("Feugo gia Master");
                     System.out.println(filteredRooms.size());
-                    count=0;
-                    Socket masterSocket = new Socket("localhost", 1235);
+                    Socket masterSocket = new Socket("localhost", 1234);
                     ObjectOutputStream outToMaster = new ObjectOutputStream(masterSocket.getOutputStream());
                     System.out.println("trying to connect to Master");
-                        // Send results. You might need to customize this part based on your application logic.
+                    // Send results. You might need to customize this part based on your application logic.
+                    outToMaster.writeInt(7); // Example of sending filtered rooms
+                    outToMaster.flush();
+
+                    outToMaster.writeInt(NumberToSocket); // Example of sending filtered rooms
+                    outToMaster.flush();
+
                     outToMaster.writeObject(filteredRooms); // Example of sending filtered rooms
                     outToMaster.flush();
-                    outToMaster.writeInt(FilterOrNot); // Example of sending filtered rooms
-                    outToMaster.flush();
+
+                    ClientIndexToRoomsMap.remove(NumberToSocket);
                     outToMaster.close();
                     masterSocket.close();
                     filteredRooms.clear();

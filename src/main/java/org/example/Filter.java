@@ -69,12 +69,12 @@ public class Filter implements Serializable {
         }
 
         // Check if price is within acceptable range
-        if (this.getPrice() > room.getPrice()) {
+        if (this.getPrice() < room.getPrice()) {
             return false;
         }
 
         // Check if room can accommodate the number of persons
-        if (this.getNumb() > room.getNoOfPersons()) {
+        if (this.getNumb() != room.getNoOfPersons()) {
             return false;
         }
 
