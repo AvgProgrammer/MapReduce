@@ -60,10 +60,10 @@ public class ManagerApp extends Thread{
 
                     }
                     for(Room room:rooms){
-                        sc.nextLine();
+                        /*sc.nextLine();
                         System.out.println("Add availability period for room with name "+room.getRoomName()+" in area "+room.getArea()+"in format:(DD/MM/YYYY-DD/MM/YYY)");
                         String timeperiod=sc.nextLine();
-                        room.setTimePeriod(timeperiod);
+                        room.setTimePeriod(timeperiod);*/
                         new ManagerApp(room,1, rooms).start();
                     }
 

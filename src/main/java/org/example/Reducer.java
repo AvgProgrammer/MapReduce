@@ -12,7 +12,6 @@ public class Reducer {
     private HashMap<Integer ,Integer > ClientIndexToRoomsMap=new HashMap<>() ;
     private ObjectInputStream in;
     private ObjectOutputStream out;
-    private ArrayList<Room> Rooms=new ArrayList();
     public static void main(String[] args) {
         Reducer reducer=new Reducer();
         reducer.StartReducer();

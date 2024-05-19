@@ -32,11 +32,11 @@ public class Worker{
         try {
             connection=new Socket("localhost",1234);
             this.out=new ObjectOutputStream(connection.getOutputStream());
-
             this.out.writeInt(6);
             this.out.flush();
+            this.in = new ObjectInputStream(connection.getInputStream());
             while(true) {
-                this.in = new ObjectInputStream(connection.getInputStream());
+
                 Object task=in.readObject();
                 int num=in.readInt();
                 int SocketToClient=-1;
@@ -97,21 +97,7 @@ public class Worker{
             this.SocketToClient=number;
         }
         public void run() {
-            /*while (!isInterrupted()) {
-                Object task = null;
-                synchronized (lock) {
-                    while (taskQueue.isEmpty()) {
-                        try {
-                            lock.wait(); // Wait for a new task to be added
-                        } catch (InterruptedException e) {
-                            interrupt(); // Preserve interrupt status
-                            return; // Exit on interruption
-                        }
-                    }
-                    task = taskQueue.remove(0); // Retrieve and remove the first task from the list
-                }
-                processTask(task); // Process the retrieved task
-            }*/
+
             Object task = null;
             task = taskQueue.remove(0);
             processTask(task);
