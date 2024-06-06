@@ -72,19 +72,43 @@ public class Master {
                     if (IntegerToSocket.containsKey(hashMapkey)) {
                         System.out.println("Socket Found");
                         Socket socket2=IntegerToSocket.get(hashMapkey);
+                        System.out.println(socket2);
                         ObjectOutputStream out = new ObjectOutputStream(socket2.getOutputStream());
-
                         out.writeObject(Results);
                         out.flush();
                     }
+                }else if(num==10){
+                    System.out.println("Reducer connected.On 10 ");
+                    int hashMapkey=in.readInt();
+                    System.out.println(hashMapkey);
+                    int cond=in.readInt();
+                    System.out.println(cond);
+
+
+                    HashMap<Integer,Socket> IntegerToSocket=getHashMap();
+                    if (IntegerToSocket.containsKey(hashMapkey)) {
+
+                        System.out.println("Socket Found");
+
+                        Socket socket3=IntegerToSocket.get(hashMapkey);
+                        System.out.println(socket3);
+                        ObjectOutputStream out = new ObjectOutputStream(socket3.getOutputStream());
+
+                        out.writeInt(cond);
+                        out.flush();
+                        System.out.println("Cond was sent");
+                    }
                 }else{
+                    if (num==3 || num==4) {
+                        System.out.println("Tenant connected.");
+                        System.out.println(socket);
+                    }
                     Object receivedObject = in.readObject();
-                    MasterThread Thread=new MasterThread(num,receivedObject);
+                    MasterThread Thread = new MasterThread(num, receivedObject);
                     System.out.println("Thread started");
                     Thread.start();
-                    //changeWorker(receivedObject, num);
-                }
 
+                }
             }
         }catch (IOException e){
             e.printStackTrace();
@@ -172,6 +196,19 @@ public class Master {
                         System.out.println("Esteila");
                     }
                 } else if (num == 4) {
+                    System.out.println("Eimai edw");
+                    HashMap<Integer, Socket> IntegerToSocket = getHashMap();
+                    Random random = new Random();
+                    int RandKey = -1;
+                    while (true) {
+                        RandKey = random.nextInt(100);
+                        if (!IntegerToSocket.containsKey(RandKey)) {
+                            // Key does not exist, so put the random number as a key with a corresponding value
+                            setRandNumber(RandKey, socket);
+                            System.out.println(RandKey);
+                            break;
+                        }
+                    }
                     for (int i = 0; i < SocketToWorker.size(); i++) {
 
                         ObjectOutputStream outWorker = SocketToObjectOut.get(i);
@@ -183,8 +220,10 @@ public class Master {
 
                         outWorker.writeInt(SocketToWorker.size());
                         outWorker.flush();
+
+                        outWorker.writeInt(RandKey);
+                        outWorker.flush();
                         }
-                        System.out.println("Esteila");
                     }
 
                 }
@@ -193,82 +232,7 @@ public class Master {
             }
         }
     }
-    public void changeWorker(Object receivedObject, int num){
-        try {
-            if (receivedObject instanceof Room room && num == 1) {
 
-                int workerIndex = h(room.getRoomName());
-                System.out.println("Room with room name:" + room.getRoomName() + " Added to worker:" + workerIndex);
-                Socket socket1 = SocketToWorker.get(workerIndex);
-                ObjectOutputStream outWorker = SocketToObjectOut.get(workerIndex);
-
-                outWorker.writeObject(receivedObject);
-                outWorker.flush();
-
-                outWorker.writeInt(SocketToWorker.size());
-                outWorker.flush();
-
-            } else if (receivedObject instanceof Filter filter) {
-                System.out.println("Processing the filter in area:" + ((Filter) receivedObject).getArea());
-
-                HashMap<Integer, Socket> IntegerToSocket = this.getHashMap();
-                Random random = new Random();
-                int x = -1;
-                int RandKey;
-                boolean cond = false;
-                do {
-                    RandKey = random.nextInt(100);
-                    if (!IntegerToSocket.containsKey(RandKey)) {
-                        System.out.println("RandKey:" + RandKey);
-                        // Key does not exist, so put the random number as a key with a corresponding value
-                        this.setRandNumber(RandKey, socket);
-                        cond = true;
-                        x = RandKey;
-                    }
-                } while (cond == false);
-                System.out.println(x);
-                for (int j = 0; j < SocketToWorker.size(); j++) {
-                    Map(j, filter, x);
-                }
-            }
-            if (num == 2) {
-                ArrayList<Room> listOfArrays = new ArrayList<>();
-
-                System.out.println("Eimai edw");
-                HashMap<Integer, Socket> IntegerToSocket = getHashMap();
-                Random random = new Random();
-                int RandKey = -1;
-                while (true) {
-                    RandKey = random.nextInt(100);
-                    if (!IntegerToSocket.containsKey(RandKey)) {
-                        // Key does not exist, so put the random number as a key with a corresponding value
-                        setRandNumber(RandKey, socket);
-                        break;
-                    }
-                }
-                for (int i = 0; i < SocketToWorker.size(); i++) {
-                    Map(i, listOfArrays, RandKey);
-                    System.out.println("Esteila");
-                }
-            } else if (num == 4) {
-                for (int i = 0; i < SocketToWorker.size(); i++) {
-                    Socket socket1 = SocketToWorker.get(i);
-                    ObjectOutputStream outWorker = new ObjectOutputStream(socket1.getOutputStream());
-                    System.out.println("Sending Results to map");
-
-                    outWorker.writeObject(receivedObject);
-                    outWorker.flush();
-
-                    outWorker.writeInt(SocketToWorker.size());
-                    outWorker.flush();
-                    System.out.println("Esteila");
-                }
-
-            }
-        } catch (IOException e) {
-            System.err.println("Failed to change workers: " + e.getMessage());
-        }
-    }
     private void Map(int MapId,Object Object,int RandKey) throws IOException {
         ObjectOutputStream outWorker=SocketToObjectOut.get(MapId);
         System.out.println("Sending Results to map");

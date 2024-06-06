@@ -1,12 +1,15 @@
 package org.example;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 public class Filter implements Serializable {
 
+    @Serial
+    private static final long serialVersionUID = 2884540969011670796L;
     private String area="";
     private String time="";
     private int numb=0;

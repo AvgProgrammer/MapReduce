@@ -40,7 +40,7 @@ public class Worker{
                 Object task=in.readObject();
                 int num=in.readInt();
                 int SocketToClient=-1;
-                if(task instanceof Filter  || task instanceof ArrayList<?>){
+                if(!(task instanceof Room)){
                     SocketToClient=in.readInt();
                     System.out.println(SocketToClient);
                 }
@@ -100,9 +100,13 @@ public class Worker{
 
             Object task = null;
             task = taskQueue.remove(0);
-            processTask(task);
+            try {
+                processTask(task);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
-        private void processTask(Object task) {
+        private void processTask(Object task) throws IOException {
             if (task instanceof Room room) {
                 Rooms.add(room);
                 System.out.println("Add the room");
@@ -122,6 +126,10 @@ public class Worker{
                         outToMaster.flush();
 
                         System.out.println(num);
+
+                        outToMaster.writeInt(1);
+                        outToMaster.flush();
+
                         //Send the Number that represent the Socket of Client
                         outToMaster.writeInt(SocketToClient);
                         outToMaster.flush();
@@ -171,15 +179,51 @@ public class Worker{
                 System.out.println(parts[0]);
                 System.out.println(parts[1]);
                 System.out.println(parts[2]);
+                System.out.println(parts[3]);
                 for(int i=0; i<Rooms.size(); i++){
                     if(Rooms.get(i).getRoomName().equals(parts[0])){
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                         LocalDate date1 = LocalDate.parse(parts[1], formatter);
                         LocalDate date2 = LocalDate.parse(parts[2], formatter);
-                        Rooms.get(i).AddDate(date1,date2);
-                        System.out.println("Room with name: "+ parts[0]+" is officially booked");
-                        if(Rooms.get(i).isBooked(date1,date2)){
-                            System.out.println("Room with name: "+ parts[0]+" is officially booked");
+                        try {
+                            Socket WorkerToMaster = new Socket("localhost", 1236);
+                            ObjectOutputStream outToMaster = new ObjectOutputStream(WorkerToMaster.getOutputStream());
+
+                            outToMaster.writeInt(num);
+                            outToMaster.flush();
+
+                            outToMaster.writeInt(10);
+                            outToMaster.flush();
+
+                            System.out.println("Socekt:"+SocketToClient);
+
+                            outToMaster.writeInt(SocketToClient);
+                            outToMaster.flush();
+
+                            if(parts[3].equals("1")){
+                                Rooms.get(i).AddDate(date1,date2);
+                                System.out.println("Room with name: "+ parts[0]+" is officially booked");
+                                if(Rooms.get(i).isBooked(date1,date2)){
+                                    System.out.println("Room with name: "+ parts[0]+" is officially booked");
+                                }
+                                outToMaster.writeInt(2);
+                                outToMaster.flush();
+                            }else if(parts[3].equals("0")){
+                                System.out.println("eimai edw");
+                                if(Rooms.get(i).getBlocked()==1){
+                                    outToMaster.writeInt(1);
+                                    outToMaster.flush();
+                                }else{
+                                    Rooms.get(i).setBlocked(1);
+                                    outToMaster.writeInt(0);
+                                    outToMaster.flush();
+                                }
+                            }
+                            outToMaster.close();
+                            WorkerToMaster.close();
+                        }catch (IOException e) {
+                            System.out.println("Error processing filter task: " + e.getMessage());
+                            e.printStackTrace();
                         }
                     }
                 }

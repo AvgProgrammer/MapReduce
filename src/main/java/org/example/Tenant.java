@@ -99,11 +99,12 @@ public class Tenant extends Thread{
         LocalDate startDate = LocalDate.parse(parts[0], formatter);
         LocalDate endDate = LocalDate.parse(parts[1], formatter);
         System.out.println("You selected: " + selectedRoom.getRoomName());
-        if(book(selectedRoom,startDate,endDate)) {
+        Tenant tenant1 = new Tenant(filter, 4, selectedRoom.getRoomName(), parts[0], parts[1]);
+        tenant1.start();
 
-            Tenant tenant1 = new Tenant(filter, 4, selectedRoom.getRoomName(), parts[0], parts[1]);
-            tenant1.start();
-        }
+        tenant1.join();
+        int num1=tenant1.getNum();
+        System.out.println("Enter the number of the tenant you wish to choose:"+num1);
 
     }
     Socket requestSocket;
@@ -114,6 +115,7 @@ public class Tenant extends Thread{
     private String name;
     private String startDate;
     private String endDate;
+    private int num1;
 
     private ArrayList<Room> rooms;
     public Tenant(Filter filter,int num,String name, String startDate, String endDate) {
@@ -123,6 +125,7 @@ public class Tenant extends Thread{
         this.startDate=startDate;
         this.endDate=endDate;
         this.rooms=new ArrayList<>();
+        this.num1=-1;
     }
 
     private static boolean book(Room room, LocalDate startDate, LocalDate endDate) {
@@ -145,6 +148,7 @@ public class Tenant extends Thread{
             requestSocket=new Socket("localhost",1234);
 
             this.out=new ObjectOutputStream(requestSocket.getOutputStream());
+
             if(num==3) {
                 this.out.writeInt(3);
                 this.out.flush();
@@ -155,11 +159,27 @@ public class Tenant extends Thread{
 
                 rooms = (ArrayList<Room>) this.in.readObject();
 
-            }else{
+            }else {
                 out.writeInt(4);
                 out.flush();
-                out.writeObject(name + ":" + startDate + ":" + endDate);
-                out.flush();
+
+                //out.writeObject(name + ":" + startDate + ":" + endDate+ ":" +"0");
+                //out.flush();
+
+                this.in = new ObjectInputStream(requestSocket.getInputStream());
+
+                System.out.println("Waiting to read an integer from the server...");
+                int number = in.readInt();
+                num1 = number;
+                System.out.println("Read integer: " + number);
+
+                if (number == 0) {
+                    System.out.println(number);
+                } else if (number == 1) {
+                    System.out.println(number);
+                } else if (number == 2) {
+                    System.out.println(number);
+                }
             }
 
 
@@ -180,5 +200,8 @@ public class Tenant extends Thread{
     }
     public ArrayList<Room> getRooms(){
         return this.rooms;
+    }
+    public int getNum() {
+        return this.num1;
     }
 }

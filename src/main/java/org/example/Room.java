@@ -1,11 +1,14 @@
 package org.example;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class Room implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 2569659724988268417L;
     private String roomName;
     private String area;
     private int noOfReviews;
@@ -14,9 +17,19 @@ public class Room implements Serializable {
     private String roomImage;
     private double price;
     private ArrayList<String> Booked;
+    private int Blocked;
 
     private String timePeriod;
-    public Room(String Name,int numbPerson,String Area,double stars,int reviews,double price,String img){
+
+    public int getBlocked() {
+        return Blocked;
+    }
+
+    public void setBlocked(int blocked) {
+        this.Blocked = blocked;
+    }
+
+    public Room(String Name, int numbPerson, String Area, double stars, int reviews, double price, String img){
         this.roomName=Name;
         this.area=Area;
         this.noOfReviews=reviews;
@@ -25,12 +38,13 @@ public class Room implements Serializable {
         this.roomImage=img;
         this.price = price;
         this.Booked=new ArrayList<>();
+        this.Blocked=0;
     }
     public boolean isBooked(LocalDate startDate, LocalDate endDate){
         String[] parts;
-        if(isInAvailabilityPeriod(startDate,endDate)){
+        //if(isInAvailabilityPeriod(startDate,endDate)){
 
-        }
+        //}
         for(String key: Booked){
             parts = key.split("-");
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
