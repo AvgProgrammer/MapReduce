@@ -42,22 +42,21 @@ public class Room implements Serializable {
     }
     public boolean isBooked(LocalDate startDate, LocalDate endDate){
         String[] parts;
-        //if(isInAvailabilityPeriod(startDate,endDate)){
+        if(isInAvailabilityPeriod(startDate,endDate)) {
+            for (String key : Booked) {
+                parts = key.split("-");
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                try {
+                    System.out.println(key);
+                    LocalDate StartDate1 = LocalDate.parse(parts[0], formatter);
+                    LocalDate EndDate1 = LocalDate.parse(parts[1], formatter);
+                    if (!StartDate1.isAfter(endDate) && !EndDate1.isBefore(startDate)) {
+                        return true;
+                    }
 
-        //}
-        for(String key: Booked){
-            parts = key.split("-");
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            try {
-                System.out.println(key);
-                LocalDate StartDate1 = LocalDate.parse(parts[0], formatter);
-                LocalDate EndDate1 = LocalDate.parse(parts[1], formatter);
-                if(!StartDate1.isAfter(endDate) && !EndDate1.isBefore(startDate)){
-                    return  true;
+                } catch (java.time.format.DateTimeParseException e) {
+                    System.out.println("Invalid date format. Please enter the date in the format DD/MM/YYYY.");
                 }
-
-            } catch (java.time.format.DateTimeParseException e) {
-                System.out.println("Invalid date format. Please enter the date in the format DD/MM/YYYY.");
             }
         }
         return false;

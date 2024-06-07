@@ -163,8 +163,8 @@ public class Tenant extends Thread{
                 out.writeInt(4);
                 out.flush();
 
-                //out.writeObject(name + ":" + startDate + ":" + endDate+ ":" +"0");
-                //out.flush();
+                out.writeObject(name + ":" + startDate + ":" + endDate+ ":" +"0");
+                out.flush();
 
                 this.in = new ObjectInputStream(requestSocket.getInputStream());
 
